@@ -63,7 +63,7 @@ int rdt_recv(int socket_descriptor, char *buffer, int buffer_length, int flags, 
             //((sockaddr_in *)from_address)->sin_port = htons(atoi("8080"));
 
             int sendStatus;
-            if((sendStatus = sendto(socket_descriptor, (void *)&ackPkt, sizeof(ackPkt), flags, from_address, (socklen_t)address_length)) == -1) {
+            if((sendStatus = sendto(socket_descriptor, (void *)&ackPkt, sizeof(ackPkt), flags, from_address, (socklen_t)*address_length)) == -1) {
                 fprintf(stderr, "Error on transport layer recvfrom while sending ACK through sendto, errno = %d (%s) \n", errno, strerror(errno));
                 return sendStatus;
             }
