@@ -176,7 +176,7 @@ int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags
         displayRcvAckMsg(ackPkt.cksum, ackPkt.hlen, ackPkt.ackno);
 
         /* Only accepts ACK if it is the lower packet sequence number that has not been ACK yet and data is not corrupted. */
-        if((ackSeqNum != ackPkt.ackno) || !validate_ackcksum(ackPkt.ackno, ackPkt.cksum))
+        if((ackSeqNum != ackPkt.ackno))
             continue;
 
         ackSeqNum++;
