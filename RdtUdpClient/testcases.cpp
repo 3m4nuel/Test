@@ -15,7 +15,7 @@ void success_pktinorder()
 }
 
 /* Test 2: Packet sent out of order successfully */
-void success_pktoutoforder(queue<DATA_PKT> pkts)
+queue<DATA_PKT> success_pktoutoforder(queue<DATA_PKT> pkts)
 {
     if(pkts.size() < 3)
     {
@@ -41,10 +41,12 @@ void success_pktoutoforder(queue<DATA_PKT> pkts)
     pkts.push(pkt3);
     cout << "Packet Seqno. " << pkt1.seqno << " push.";
     pkts.push(pkt1);
+
+    return pkts;
 }
 
 /* Test 3: Corrupted packet received at receiver */
-void error_corruptdata(queue<DATA_PKT> pkts)
+queue<DATA_PKT> error_corruptdata(queue<DATA_PKT> pkts)
 {
     cout << "Running test case: ERROR_CORRUPTDATA\n";
     DATA_PKT corruptPkt = pkts.front();
@@ -53,21 +55,33 @@ void error_corruptdata(queue<DATA_PKT> pkts)
     cout << "Data has been corrupted.\n\n";
     displayPktInfo(corruptPkt);
     pkts.push(corruptPkt);
+
+    return pkts;
 }
 
 /* Test 4: Packet never received from receiver */
 void error_losspkttoreceiver(queue<DATA_PKT> pkts)
 {
     cout << "Running test case: ERROR_LOSSPKTTORECEIVER\n";
-    cout << "Data has been corrupted.\n";
+    cout << "Packets below will not be sent to receiver.\n";
+    while(!pkts.empty())
+    {
+        displayPktInfo(pkts.front());
+        pkts.pop();
+    }
+    cout << "Packets are not sent.\n";
 }
 
-/* Test 5: ACK never received from sender */
-void error_lossackpkttosender(ACK_PKT pkt)
+/* Test 5: Sender meets max timeout */
+void error_maxtimeoutretry(queue<DATA_PKT> pkts)
 {
-    cout << "Running test case: ERROR_LOSSACKPKTTOSENDER\n";
-    cout << "Transport layer will not process ACK and expect a timeout.";
-    displayAckPktInfo(pkt);
+    cout << "Running test case: ERROR_MAXTIMEOUTRETRY\n";
+    cout << "Timing out 5 times simulating ACK not received after the following packets are sent.\n";
+    while(!pkts.empty())
+    {
+        displayPktInfo(pkts.front());
+        pkts.pop();
+    }
 }
 
 /* Validate a correct test case has been inputted. */
@@ -75,10 +89,9 @@ bool isValidTestCase(char *testCase)
 {
     if(!strcmp(testCase, "SUCCESS_PKTINORDER")
         && !strcmp(testCase, "SUCCESS_PKTOUTOFORDER")
-        && !strcmp(testCase, "ERROR_CORRUPTACK")
         && !strcmp(testCase, "ERROR_CORRUPTDATA")
         && !strcmp(testCase, "ERROR_LOSSPKTTORECEIVER")
-        && !strcmp(testCase, "ERROR_LOSSACKPKTTOSENDER"))
+        && !strcmp(testCase, "ERROR_MAXTIMEOUTRETRY"))
         return false;
 
     return true;

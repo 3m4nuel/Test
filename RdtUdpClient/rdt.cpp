@@ -73,9 +73,9 @@ int rdt_recv(int socket_descriptor, char *buffer, int buffer_length, int flags, 
         /* Checks and if packet sequence does not exist, adds packet to packet queue for later processing and *
          * sends an ACK if this event is successful.                                                          */
         if(!isSeqExist(recv_pkts, recv_pkt)) {
-            recv_pkts.push_front(recv_pkt);
 
             if (validate_cksum(recv_pkt.data, recv_pkt.dlen, recv_pkt.cksum)) {
+                recv_pkts.push_front(recv_pkt);
                 /* Create ACK packet to be sent. */
                 ACK_PKT ackPkt = make_ackpkt(recv_pkt.seqno);
 
@@ -146,14 +146,18 @@ int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags
     if(testCase == "SUCCESS_PKTINORDER")
         success_pktinorder();
     else if(testCase == "SUCCESS_PKTOUTOFORDER")
-        success_pktoutoforder(pkts);
+        pkts = success_pktoutoforder(pkts);
     else if(testCase == "ERROR_CORRUPTDATA")
-        error_corruptdata(pkts);
+        pkts = error_corruptdata(pkts);
+
+    if(testCase != "ERROR_LOSSPKTTORECEIVER" && testCase != "ERROR_MAXTIMEOUTRETRY" ) {
+        if(send_packets(socket_descriptor, flags, destination_address, address_length, pkts) == -1)
+        return -1;
+    }
     else if(testCase == "ERROR_LOSSPKTTORECEIVER")
         error_losspkttoreceiver(pkts);
-
-    if(send_packets(socket_descriptor, flags, destination_address, address_length, pkts) == -1)
-        return -1;
+    else if(testCase == "ERROR_MAXTIMEOUTRETRY")
+        error_maxtimeoutretry(pkts);
 
     /* Wait for ACK validation to determine whether to resend packets or do nothing because the packets were sent successfully. */
     int statusCd;
@@ -164,23 +168,34 @@ int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags
     /* Testing variables */
     bool lossAckPktOccured = false;
 
-    int status = callTimeout(socket_descriptor, TIME_OUT_SECS);
+    int timeoutStatus;
+    int timeOutCounter = 0;
     /* Wait for ACKs to verify a successful packet sent to receiver. If not verified, resubmit. */
     while(ackSeqNum <= num_sending_pkts)
     {
-        int timeOutCounter = 0;
-        if(status == 0)
+        timeoutStatus = callTimeout(socket_descriptor, TIME_OUT_SECS);
+        if(timeoutStatus == 0)
         {
+            cout << "Timeout occured. Resending packets.\n\n";
             timeOutCounter++;
+
+            if(timeOutCounter == MAX_TIMEOUT_RETRY) {
+                cout << "Max timeout retries met. Closing connection.";
+                return 0;
+            }
+
+            if(testCase == "ERROR_MAXTIMEOUTRETRY")
+                continue;
+
             /* Recreate packets based on buffer size and packet size limit and send packets to receiver. */
-            queue<DATA_PKT> resent_pkts = make_pkts(buffer, buffer_length);
-            if(send_packets(socket_descriptor, flags, destination_address, address_length, resent_pkts) == -1)
-                return -1;
+             queue<DATA_PKT> resent_pkts = make_pkts(buffer, buffer_length);
+             if(send_packets(socket_descriptor, flags, destination_address, address_length, resent_pkts) == -1)
+                 return -1;
 
             /* Reinitialize ACK verification veriables. */
             num_sending_pkts = resent_pkts.size();
             ackSeqNum = 1;
-            status = callTimeout(socket_descriptor, TIME_OUT_SECS);
+            timeoutStatus = callTimeout(socket_descriptor, TIME_OUT_SECS);
         }
 
         /* Receive expected ACKs from receiver. */
@@ -189,13 +204,8 @@ int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags
             return statusCd;
         }
 
-        /* Test Case */
-        if(testCase == "ERROR_LOSSACKPKTTOSENDER")// && !lossAckPktOccured)
-        {
-            error_lossackpkttosender(ackPkt);
-            lossAckPktOccured = true;
-            continue;
-        }
+        /* Reinitialize timeout counter because ACK has been received.*/
+        timeOutCounter = 0;
 
         /* Display packet information for debugging purposes on console. */
         displayRcvAckMsg(ackPkt.cksum, ackPkt.hlen, ackPkt.ackno);

@@ -16,8 +16,6 @@
 using namespace std;
 
 int callTimeout (int filedes, unsigned int seconds) {
-cout << "Made it to serverTimeout function" << endl;
-
   fd_set set;
   struct timeval timeout;
 

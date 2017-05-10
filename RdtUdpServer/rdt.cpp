@@ -35,6 +35,7 @@
 #include "packet.hpp"
 #include "debugmsg.hpp"
 #include "cksum.hpp"
+#include "timeout.hpp"
 //#include "testcases.hpp"
 
 using namespace std;
@@ -72,9 +73,8 @@ int rdt_recv(int socket_descriptor, char *buffer, int buffer_length, int flags, 
         /* Checks and if packet sequence does not exist, adds packet to packet queue for later processing and *
          * sends an ACK if this event is successful.                                                          */
         if(!isSeqExist(recv_pkts, recv_pkt)) {
-            recv_pkts.push_front(recv_pkt);
-
             if (validate_cksum(recv_pkt.data, recv_pkt.dlen, recv_pkt.cksum)) {
+                recv_pkts.push_front(recv_pkt);
                 /* Create ACK packet to be sent. */
                 ACK_PKT ackPkt = make_ackpkt(recv_pkt.seqno);
 
@@ -148,13 +148,15 @@ int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags
     uint32_t ackSeqNum = 1;
     uint32_t num_sending_pkts = pkts.size();
 
+    int status = callTimeout(socket_descriptor, TIME_OUT_SECS);
+
     /* Wait for ACKs to verify a successful packet sent to receiver. If not verified, resubmit. */
     while(ackSeqNum <= num_sending_pkts)
     {
-        //TODO: If timeout(never receives correct number packet, send (up to 5 times). Exit sendto for connection close if ACKs are never received.
         int timeOutCounter = 0;
-        if(false)
+        if(status == 0)
         {
+            cout << "Timeout occured. Resending packets.\n\n";
             timeOutCounter++;
             /* Recreate packets based on buffer size and packet size limit and send packets to receiver. */
             queue<DATA_PKT> resent_pkts = make_pkts(buffer, buffer_length);
@@ -164,6 +166,7 @@ int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags
             /* Reinitialize ACK verification veriables. */
             num_sending_pkts = resent_pkts.size();
             ackSeqNum = 1;
+            status = callTimeout(socket_descriptor, TIME_OUT_SECS);
         }
 
         /* Receive expected ACKs from receiver. */
