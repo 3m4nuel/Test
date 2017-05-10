@@ -1,3 +1,17 @@
+/*
+ * Emmanuel A. Castillo
+ * Brooke Thielen
+ *
+ * Reliable Data Transfer UDP
+ * ---------------------------------
+ * The sole purpose of this header file
+ * is to display packet information into
+ * the console for debugging purposes.
+ */
+
+#ifndef DEBUGMSG_HPP_INCLUDED
+#define DEBUGMSG_HPP_INCLUDED
+
 #include <string.h>
 
 using namespace std;
@@ -55,3 +69,5 @@ void displayRcvAckMsg(uint16_t cksum, uint16_t hlen, uint32_t ackno)
     cout << "ackno: " << ackno << "\n";
     cout << "\n";
 }
+
+#endif

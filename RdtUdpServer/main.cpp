@@ -1,3 +1,16 @@
+/*
+ * Emmanuel A. Castillo
+ * Brooke Thielen
+ *
+ * Reliable Data Transfer UDP
+ * ---------------------------------
+ * This application is a component of
+ * a full project that consist of both
+ * a client and server. In this case,
+ * it is the server that waits for
+ * clients to communicate with it.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,13 +43,14 @@ int main(int argc, char *argv[])
        return -1;
     }
 
+    /* Configure server information for the client to send a request to. */
     struct sockaddr_in saddr;
     memset((void *)&saddr, 0, sizeof(saddr));
     saddr.sin_family = AF_INET;
     saddr.sin_addr.s_addr = inet_addr(argv[1]);
     saddr.sin_port = htons(atoi(argv[2]));
 
-    /* bind service to a port */
+    /* Bind service to a port */
     if (rdt_bind(sockfd, (struct sockaddr *)&saddr, sizeof(saddr)) == -1) {
         fprintf(stderr, "%s: unable to bind to port '%s', errno = %d (%s) \n", argv[0], argv[2], errno, strerror(errno));
         rdt_close(sockfd);
@@ -57,13 +71,6 @@ int main(int argc, char *argv[])
 
         cout << "Application Layer receives: " << sumData << "\n";
         cout << "\n";
-
-        /* Send response to client that message was received. */
-       /* string testSend("Server received msg.");
-        if (rdt_sendto(sockfd, (char *)testSend.c_str(), testSend.length(), 0, (struct sockaddr *)&caddr, slen) == -1) {
-            fprintf(stderr, "Error sending to client, errno = %d (%s) \n",
-            errno, strerror(errno));
-        }*/
     }
 
     return 0;

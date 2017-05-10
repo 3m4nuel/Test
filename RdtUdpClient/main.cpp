@@ -1,3 +1,16 @@
+/*
+ * Emmanuel A. Castillo
+ * Brooke Thielen
+ *
+ * Reliable Data Transfer UDP
+ * ---------------------------------
+ * This application is a component of
+ * a full project that consist of both
+ * a client and server. In this case,
+ * it is the client that is used to
+ * request data to the server.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,17 +23,28 @@
 #include <arpa/inet.h>
 
 #include <iostream>
+
 #include "rdt.hpp"
+#include "testcases.hpp"
 
 using namespace std;
 
 
 int main(int argc, char *argv[])
 {
-    if (argc != 4) {
-        fprintf(stderr, "Usage: %s <ip_address> <port> <msg>\n", argv[0]);
+    if (argc != 4) { //TODO: Change for test case.
+        fprintf(stderr, "Usage: %s <ip_address> <port> <msg> <test case>\n", argv[0]);
         return -1;
     }
+
+
+    /*char *testCase = argv[4];
+
+    if(!isValidTestCase(testCase))
+    {
+        printf("Invalid test case: %s", testCase);
+        return -1;
+    }*/
 
     /* Open a UCP based socket connection */
     int sockfd;
@@ -31,6 +55,9 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    /* In C++ this is required from the client to properly send data to the server.   *
+     * The client socket is advertised as broadcast that permits it to send a request *
+     * to a server.                                                                   */
     int broadcastEnable = 1;
     if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable)) == -1) {
         fprintf(stderr, "Error sending socket to broadcast mode, errno = %d (%s) \n", errno, strerror(errno));
@@ -38,6 +65,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    /* Configure server information for the client to send a request to. */
     char* addr = argv[1];
     char* port = argv[2];
     struct sockaddr_in saddr;
@@ -46,27 +74,18 @@ int main(int argc, char *argv[])
     saddr.sin_addr.s_addr = inet_addr(addr);
     saddr.sin_port = htons(atoi(port));
 
+    /* Set up request data that the client will send to the server. */
     char *msg = argv[3];
-    char sumData[500];
-    bzero(sumData, 500);
 
+    /* Utilize implemented RDT UDP send to function to send data to server. */
+    //if (rdt_sendto(sockfd, msg, strlen(msg), 0,(struct sockaddr *) &saddr, sizeof(saddr), testCase) == -1) {
     if (rdt_sendto(sockfd, msg, strlen(msg), 0,(struct sockaddr *) &saddr, sizeof(saddr)) == -1) {
         fprintf(stderr, "Error sending udp pkt to server, errno = %d (%s) \n", errno, strerror(errno));
         rdt_close(sockfd);
         return -1;
     }
 
-    /* Wait for response from server (get time) */
-    /*int clen;
-    if (rdt_recv(sockfd, sumData, 500, 0, (struct sockaddr *)&saddr, &clen) == -1) {
-        fprintf(stderr, "Error receiving udp pkt from server, errno = %d (%s) \n", errno, strerror(errno));
-        close(sockfd);
-        return -1;
-    }*/
-
-   // cout << "Application Layer receives: " << sumData << "\n";
-   // cout << "\n";
-
+    /* Close socket after successful request to server or destroyed connection. */
     rdt_close(sockfd);
 
     return 0;

@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="localhost 8080 hi" />
+				<Option parameters="localhost 8082 helloooooo" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -33,12 +33,17 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="cksum.cpp" />
+		<Unit filename="cksum.hpp" />
+		<Unit filename="debugmsg.cpp" />
 		<Unit filename="debugmsg.hpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="packet.cpp" />
 		<Unit filename="packet.hpp" />
 		<Unit filename="rdt.cpp" />
 		<Unit filename="rdt.hpp" />
+		<Unit filename="testcases.cpp" />
+		<Unit filename="testcases.hpp" />
 		<Extensions>
 			<code_completion />
 			<debugger />

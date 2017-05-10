@@ -1,5 +1,16 @@
-#ifndef RDT_H_INCLUDED
-#define RDT_H_INCLUDED
+/*
+ * Emmanuel A. Castillo
+ * Brooke Thielen
+ *
+ * Reliable Data Transfer UDP
+ * ---------------------------------
+ * This provides the prototypes
+ * of the RDT UDP implementation.
+ */
+
+
+#ifndef RDT_HPP_INCLUDED
+#define RDT_HPP_INCLUDED
 
 #include <netinet/in.h>
 #include <stdint.h>
@@ -15,8 +26,9 @@ int rdt_bind(int socket_descriptor, const struct sockaddr *local_address, sockle
 
 int rdt_recv(int socket_descriptor, char *buffer, int buffer_length, int flags, struct sockaddr *from_address, int *address_length);
 
+//int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags, struct sockaddr *destination_address, int address_length, char *test_case);
 int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags, struct sockaddr *destination_address, int address_length);
 
 int rdt_close(int fildes);
 
-#endif // RDT_H_INCLUDED
+#endif
