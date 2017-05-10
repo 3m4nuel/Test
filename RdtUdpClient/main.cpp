@@ -32,19 +32,19 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    if (argc != 4) { //TODO: Change for test case.
+    if (argc != 5) {
         fprintf(stderr, "Usage: %s <ip_address> <port> <msg> <test case>\n", argv[0]);
         return -1;
     }
 
 
-    /*char *testCase = argv[4];
+    char *testCase = argv[4];
 
     if(!isValidTestCase(testCase))
     {
         printf("Invalid test case: %s", testCase);
         return -1;
-    }*/
+    }
 
     /* Open a UCP based socket connection */
     int sockfd;
@@ -78,8 +78,8 @@ int main(int argc, char *argv[])
     char *msg = argv[3];
 
     /* Utilize implemented RDT UDP send to function to send data to server. */
-    //if (rdt_sendto(sockfd, msg, strlen(msg), 0,(struct sockaddr *) &saddr, sizeof(saddr), testCase) == -1) {
-    if (rdt_sendto(sockfd, msg, strlen(msg), 0,(struct sockaddr *) &saddr, sizeof(saddr)) == -1) {
+    if (rdt_sendto(sockfd, msg, strlen(msg), 0,(struct sockaddr *) &saddr, sizeof(saddr), testCase) == -1) {
+    //if (rdt_sendto(sockfd, msg, strlen(msg), 0,(struct sockaddr *) &saddr, sizeof(saddr)) == -1) {
         fprintf(stderr, "Error sending udp pkt to server, errno = %d (%s) \n", errno, strerror(errno));
         rdt_close(sockfd);
         return -1;

@@ -35,7 +35,7 @@
 #include "packet.hpp"
 #include "debugmsg.hpp"
 #include "cksum.hpp"
-//#include "testcases.hpp"
+#include "testcases.hpp"
 #include "timeout.hpp"
 
 using namespace std;
@@ -135,11 +135,22 @@ inline int send_packets(int socket_descriptor, int flags, struct sockaddr *desti
 }
 
 /* Data is received from the application layer and packets are created and sent to the source */
-//int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags, struct sockaddr *destination_address, int address_length, char *test_case)
-int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags, struct sockaddr *destination_address, int address_length)
+int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags, struct sockaddr *destination_address, int address_length, char *test_case)
+//int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags, struct sockaddr *destination_address, int address_length)
 {
     /* Create packets based on buffer size and packet size limit and send packets to receiver. */
     queue<DATA_PKT> pkts = make_pkts(buffer, buffer_length);
+
+    /* Test Cases */
+    if(strcmp(test_case, "SUCCESS_PKTINORDER"))
+        success_pktinorder();
+    else if(strcmp(test_case, "SUCCESS_PKTOUTOFORDER"))
+        success_pktoutoforder(pkts);
+    else if(strcmp(test_case, "ERROR_CORRUPTDATA"))
+        error_corruptdata(pkts);
+    else if(strcmp(test_case, "ERROR_LOSSPKTTORECEIVER"))
+        error_losspkttoreceiver(pkts);
+
     if(send_packets(socket_descriptor, flags, destination_address, address_length, pkts) == -1)
         return -1;
 
@@ -148,6 +159,9 @@ int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags
     ACK_PKT ackPkt;
     uint32_t ackSeqNum = 1;
     uint32_t num_sending_pkts = pkts.size();
+
+    /* Testing variables */
+    bool lossAckPktOccured = false;
 
     int status = callTimeout(socket_descriptor, TIME_OUT_SECS);
     /* Wait for ACKs to verify a successful packet sent to receiver. If not verified, resubmit. */
@@ -174,16 +188,22 @@ int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags
             return statusCd;
         }
 
+        /* Test Case */
+        if(strcmp(test_case, "ERROR_LOSSACKPKTTOSENDER") && !lossAckPktOccured)
+        {
+            error_lossackpkttosender(ackPkt);
+            continue;
+        }
+
         /* Display packet information for debugging purposes on console. */
         displayRcvAckMsg(ackPkt.cksum, ackPkt.hlen, ackPkt.ackno);
 
         /* Only accepts ACK if it is the lower packet sequence number that has not been ACK yet and data is not corrupted. */
-        if((ackSeqNum != ackPkt.ackno) || !validate_ackcksum(ackPkt.ackno, ackPkt.cksum))
+        if((ackSeqNum != ackPkt.ackno))
             continue;
 
         ackSeqNum++;
     }
-
     return 0;
 }
 
