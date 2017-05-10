@@ -140,15 +140,16 @@ int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags
 {
     /* Create packets based on buffer size and packet size limit and send packets to receiver. */
     queue<DATA_PKT> pkts = make_pkts(buffer, buffer_length);
+    string testCase(test_case);
 
     /* Test Cases */
-    if(strcmp(test_case, "SUCCESS_PKTINORDER"))
+    if(testCase == "SUCCESS_PKTINORDER")
         success_pktinorder();
-    else if(strcmp(test_case, "SUCCESS_PKTOUTOFORDER"))
+    else if(testCase == "SUCCESS_PKTOUTOFORDER")
         success_pktoutoforder(pkts);
-    else if(strcmp(test_case, "ERROR_CORRUPTDATA"))
+    else if(testCase == "ERROR_CORRUPTDATA")
         error_corruptdata(pkts);
-    else if(strcmp(test_case, "ERROR_LOSSPKTTORECEIVER"))
+    else if(testCase == "ERROR_LOSSPKTTORECEIVER")
         error_losspkttoreceiver(pkts);
 
     if(send_packets(socket_descriptor, flags, destination_address, address_length, pkts) == -1)
@@ -189,9 +190,10 @@ int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags
         }
 
         /* Test Case */
-        if(strcmp(test_case, "ERROR_LOSSACKPKTTOSENDER") && !lossAckPktOccured)
+        if(testCase == "ERROR_LOSSACKPKTTOSENDER")// && !lossAckPktOccured)
         {
             error_lossackpkttosender(ackPkt);
+            lossAckPktOccured = true;
             continue;
         }
 
