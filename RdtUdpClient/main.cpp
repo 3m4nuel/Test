@@ -32,7 +32,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
-    if (argc != 5) {
+    if (argc != 4) {
         fprintf(stderr, "Usage: %s <ip_address> <port> <msg> <test case>\n", argv[0]);
         return -1;
     }
