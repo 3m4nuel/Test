@@ -36,7 +36,6 @@
 #include "debugmsg.hpp"
 #include "cksum.hpp"
 #include "timeout.hpp"
-//#include "testcases.hpp"
 
 using namespace std;
 
@@ -73,6 +72,7 @@ int rdt_recv(int socket_descriptor, char *buffer, int buffer_length, int flags, 
         /* Checks and if packet sequence does not exist, adds packet to packet queue for later processing and *
          * sends an ACK if this event is successful.                                                          */
         if(!isSeqExist(recv_pkts, recv_pkt)) {
+
             if (validate_cksum(recv_pkt.data, recv_pkt.dlen, recv_pkt.cksum)) {
                 recv_pkts.push_front(recv_pkt);
                 /* Create ACK packet to be sent. */
@@ -134,11 +134,11 @@ inline int send_packets(int socket_descriptor, int flags, struct sockaddr *desti
 }
 
 /* Data is received from the application layer and packets are created and sent to the source */
-//int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags, struct sockaddr *destination_address, int address_length, char *test_case)
 int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags, struct sockaddr *destination_address, int address_length)
 {
     /* Create packets based on buffer size and packet size limit and send packets to receiver. */
     queue<DATA_PKT> pkts = make_pkts(buffer, buffer_length);
+
     if(send_packets(socket_descriptor, flags, destination_address, address_length, pkts) == -1)
         return -1;
 
@@ -148,25 +148,31 @@ int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags
     uint32_t ackSeqNum = 1;
     uint32_t num_sending_pkts = pkts.size();
 
-    int status = callTimeout(socket_descriptor, TIME_OUT_SECS);
-
+    int timeoutStatus;
+    int timeOutCounter = 0;
     /* Wait for ACKs to verify a successful packet sent to receiver. If not verified, resubmit. */
     while(ackSeqNum <= num_sending_pkts)
     {
-        int timeOutCounter = 0;
-        if(status == 0)
+        timeoutStatus = callTimeout(socket_descriptor, TIME_OUT_SECS);
+        if(timeoutStatus == 0)
         {
             cout << "Timeout occured. Resending packets.\n\n";
             timeOutCounter++;
+
+            if(timeOutCounter == MAX_TIMEOUT_RETRY) {
+                cout << "Max timeout retries met. Closing connection.\n";
+                return 0;
+            }
+
             /* Recreate packets based on buffer size and packet size limit and send packets to receiver. */
-            queue<DATA_PKT> resent_pkts = make_pkts(buffer, buffer_length);
-            if(send_packets(socket_descriptor, flags, destination_address, address_length, resent_pkts) == -1)
-                return -1;
+             queue<DATA_PKT> resent_pkts = make_pkts(buffer, buffer_length);
+             if(send_packets(socket_descriptor, flags, destination_address, address_length, resent_pkts) == -1)
+                 return -1;
 
             /* Reinitialize ACK verification veriables. */
             num_sending_pkts = resent_pkts.size();
             ackSeqNum = 1;
-            status = callTimeout(socket_descriptor, TIME_OUT_SECS);
+            timeoutStatus = callTimeout(socket_descriptor, TIME_OUT_SECS);
         }
 
         /* Receive expected ACKs from receiver. */
@@ -175,16 +181,14 @@ int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags
             return statusCd;
         }
 
+        /* Reinitialize timeout counter because ACK has been received.*/
+        timeOutCounter = 0;
+
         /* Display packet information for debugging purposes on console. */
         displayRcvAckMsg(ackPkt.cksum, ackPkt.hlen, ackPkt.ackno);
 
-        /* Only accepts ACK if it is the lower packet sequence number that has not been ACK yet and data is not corrupted. */
-        if((ackSeqNum != ackPkt.ackno))
-            continue;
-
         ackSeqNum++;
     }
-
     return 0;
 }
 

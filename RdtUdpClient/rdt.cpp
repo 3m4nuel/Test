@@ -165,9 +165,6 @@ int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags
     uint32_t ackSeqNum = 1;
     uint32_t num_sending_pkts = pkts.size();
 
-    /* Testing variables */
-    bool lossAckPktOccured = false;
-
     int timeoutStatus;
     int timeOutCounter = 0;
     /* Wait for ACKs to verify a successful packet sent to receiver. If not verified, resubmit. */
@@ -180,7 +177,7 @@ int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags
             timeOutCounter++;
 
             if(timeOutCounter == MAX_TIMEOUT_RETRY) {
-                cout << "Max timeout retries met. Closing connection.";
+                cout << "Max timeout retries met. Closing connection.\n";
                 return 0;
             }
 
@@ -209,10 +206,6 @@ int rdt_sendto(int socket_descriptor, char *buffer, int buffer_length, int flags
 
         /* Display packet information for debugging purposes on console. */
         displayRcvAckMsg(ackPkt.cksum, ackPkt.hlen, ackPkt.ackno);
-
-        /* Only accepts ACK if it is the lower packet sequence number that has not been ACK yet and data is not corrupted. */
-        if((ackSeqNum != ackPkt.ackno))
-            continue;
 
         ackSeqNum++;
     }

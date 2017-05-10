@@ -62,7 +62,7 @@ queue<DATA_PKT> make_pkts(char *buffer, int buffer_length)
 ACK_PKT make_ackpkt(uint32_t ackno)
 {
     char ackChar[10]; /* 11 bytes: 10 for the digits, 1 for the null character */
-    sprintf(ackChar, "%u", ackno);
+    sprintf( ackChar, "%u", ackno );
 
     ACK_PKT pkt;
     pkt.cksum = create_cksum(ackChar, sizeof(ackno));

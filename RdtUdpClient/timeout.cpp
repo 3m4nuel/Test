@@ -15,7 +15,8 @@
 
 using namespace std;
 
-int callTimeout (int filedes, unsigned int seconds) {
+int callTimeout (int filedes, unsigned int seconds)
+{
   fd_set set;
   struct timeval timeout;
 
@@ -28,8 +29,6 @@ int callTimeout (int filedes, unsigned int seconds) {
   timeout.tv_usec = 0;
 
   /* select returns 0 if timeout, 1 if input available, -1 if error. */
-  return (select (FD_SETSIZE,
-          &set, NULL, NULL,
-          &timeout));
+  return (select (FD_SETSIZE, &set, NULL, NULL, &timeout));
 
 }

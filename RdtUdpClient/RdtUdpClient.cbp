@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="localhost 8082 helloooooo" />
+				<Option parameters="localhost 8080 TEST ERROR_MAXTIMEOUTRETRY" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -44,6 +44,8 @@
 		<Unit filename="rdt.hpp" />
 		<Unit filename="testcases.cpp" />
 		<Unit filename="testcases.hpp" />
+		<Unit filename="timeout.cpp" />
+		<Unit filename="timeout.hpp" />
 		<Extensions>
 			<code_completion />
 			<debugger />

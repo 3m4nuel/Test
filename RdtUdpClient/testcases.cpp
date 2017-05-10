@@ -24,22 +24,15 @@ queue<DATA_PKT> success_pktoutoforder(queue<DATA_PKT> pkts)
     }
 
     cout << "Running test case: SUCCESS_PKTOUTOFORDER\n";
-    cout << "Packets are being reordered...";
+    cout << "Packets are being reordered...\n";
     DATA_PKT pkt1 = pkts.front();
-    cout << "Packet Seqno. " << pkt1.seqno << " pop.";
     pkts.pop();
     DATA_PKT pkt2 = pkts.front();
-    cout << "Packet Seqno. " << pkt2.seqno << " pop.";
     pkts.pop();
     DATA_PKT pkt3 = pkts.front();
-    cout << "Packet Seqno. " << pkt3.seqno << " pop.";
     pkts.pop();
-
-    cout << "Packet Seqno. " << pkt2.seqno << " push.";
     pkts.push(pkt2);
-    cout << "Packet Seqno. " << pkt3.seqno << " push.";
     pkts.push(pkt3);
-    cout << "Packet Seqno. " << pkt1.seqno << " push.";
     pkts.push(pkt1);
 
     return pkts;

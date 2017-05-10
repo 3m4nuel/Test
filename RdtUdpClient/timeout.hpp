@@ -14,4 +14,4 @@
 
 int callTimeout(int filedes, unsigned int seconds);
 
-#endif // TOUT_H_INCLUDED
+#endif

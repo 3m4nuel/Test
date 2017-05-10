@@ -9,8 +9,9 @@
 #include <sys/time.h>
 #include "rdt.hpp"
 
-#define TIME_OUT_SECS 5
+#define TIME_OUT_SECS 2
+#define MAX_TIMEOUT_RETRY 5
 
 int callTimeout(int filedes, unsigned int seconds);
 
-#endif // TOUT_H_INCLUDED
+#endif

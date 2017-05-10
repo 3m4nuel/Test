@@ -26,4 +26,4 @@ void error_maxtimeoutretry(queue<DATA_PKT> pkts);
 /* Validate a correct test case has been inputted. */
 bool isValidTestCase(char *testCase);
 
-#endif // TESTCASES_HPP_INCLUDED
+#endif
